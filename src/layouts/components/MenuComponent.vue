@@ -24,6 +24,7 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 import router from "@/router"
+import { notify } from '@kyvg/vue3-notification'
 
 export default {
     name: 'MenuHeader',
@@ -32,7 +33,14 @@ export default {
 
         const logout = () => {
             store.dispatch('logout')
-                    .then(() => router.push({name: 'auth'}))
+                    .then(() => {
+                        notify({
+                            title: 'Sucesso',
+                            text: 'Usuário deslogado com sucesso!',
+                            type: 'success'
+                        })
+                        router.push({name: 'auth'})
+                    })
         }
         const loadingStore = computed(() => store.state.loading)
 
