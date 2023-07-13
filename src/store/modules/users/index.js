@@ -9,6 +9,7 @@ export default {
         },
         loggedIn: false,
     },
+
     mutations: {
         SET_USER (state, user) {
             state.user = user
@@ -19,18 +20,35 @@ export default {
                 name: '',
                 email: '',
             }
+
             state.loggedIn = false
-        } 
+        }
     },
+
     actions: {
-        auth ({state}, params) {
-            state.loggedIn
+        auth ({dispatch}, params) {
             return AuthService.auth(params)
+                                .then(() => dispatch('getMe'))
         },
 
-        forgetPassword ({state}, params) {
-            state.loggedIn
+        getMe ({commit}) {
+            commit('CHANGE_LOADING', true)
+
+            AuthService.getMe()
+                        .then(user => commit('SET_USER', user))
+                        .finally(() => commit('CHANGE_LOADING', false))
+        },
+
+        logout ({commit}) {
+            commit('CHANGE_LOADING', true)
+
+            return AuthService.logout()
+                                        .then(() => commit('LOGOUT'))
+                                        .finally(() => commit('CHANGE_LOADING', false))
+        },
+
+        forgetPassword (_, params) {
             return ResetPasswordService.forgetPassword(params)
-        }
+        },
     },
 }

@@ -1,11 +1,14 @@
 <template>
-    <section id="loginPage" :style="{backgroundImage: 'url(' + require('@/assets/images/bgLogin.jpg') + ')'}">
+    <section id="loginPage"
+        :style="{
+            backgroundImage: 'url(' + require('@/assets/images/bgLogin.jpg') + ')'
+        }">
         <div class="loginContent">
             <div class="loginCard">
                 <div class="decor" :style="{backgroundImage: 'url(' + require('@/assets/images/building.jpg') + ')'}">
                     <div class="content">
                         <span class="logo">
-                            <img :src="require('@/assets/images/logo.svg')" alt="">
+                            <img :src="require('@/assets/images/logo.svg')" alt="EspecializaTi">
                         </span>
                         <span class="dots">
                             <span></span>
@@ -25,11 +28,11 @@
                 <div class="login">
                     <div class="content">
                         <span class="logo">
-                            <!-- <img :src="require('@/assets/images/logoDark.svg')" alt=""> -->
-                            <img :src="['./assets/images/logoDark.svg']" alt="" />
+                            <img :src="require('@/assets/images/logoDark.svg')" alt="">
+                            <!-- <img :src="'./assets/images/logoDark.svg'" alt="" /> -->
                         </span>
                         <span>
-                            <p>Seja muito bem vindo!</p>
+                            <p>Seja muito bem vindo(a)!</p>
                         </span>
                         <span class="dots">
                             <span></span>
@@ -37,30 +40,30 @@
                             <span></span>
                         </span>
                         <span class="description">
-                            Informe seu e-mail para recuperar a senha.
+                            Acesse nossa plataforma e desfrute de cursos completos para sua especialização.
                         </span>
                         <form action="/dist/index.html" method="">
                             <div class="groupForm">
                                 <i class="far fa-envelope"></i>
                                 <input type="email" name="email" placeholder="E-mail" v-model="email" required>
                             </div>
-                            <button 
+                            <div class="groupForm">
+                                <i class="far fa-key"></i>
+                                <input :type="typePassword" name="password" placeholder="Senha" v-model="password" required>
+                                <i class="far fa-eye buttom" @click="toggleShowPassword"></i>
+                            </div>
+                            <button
                                 :class="[
                                     'btn',
                                     'primary',
                                     loading ? 'loading' : ''
-                                ]" 
-                                type="submit" 
-                                @click.prevent="forgetPassword">
-                                <span v-if="loading">Recuperando dados...</span>
-                                <span v-else>Recuperar senha</span>
+                                ]"
+                                type="submit"
+                                @click.prevent="auth">
+                                <span v-if="loading">Alterando...</span>
+                                <span v-else>Mudar Senha</span>
                             </button>
                         </form>
-                        <span>
-                            <p class="fontSmall">Lembrou a senha? 
-                                <router-link :to="{name: 'auth'}" class="link primary">Clique aqui</router-link>
-                            </p>
-                        </span>
                     </div>
                     <span class="copyright fontSmall">
                         Todos os Direitos reservados - <b>Especializati</b>
@@ -72,44 +75,63 @@
 </template>
 
 <script>
-// import router from '@/router';
 import { onBeforeMount, ref } from 'vue'
-import { useStore } from 'vuex'
 import { notify } from "@kyvg/vue3-notification"
 
-export default {
-    name: 'ForgetPasswordView',
-    setup(){
-        onBeforeMount(() => {
-            document.title = 'EAD - Forgot Password'
-        })
+import router from '@/router'
+import ResetPasswordService from '@/services/password.reset.service'
 
-        const store = useStore()
+export default {
+    name: 'ResetPassword',
+    props: {
+        token: {
+            require: true,
+        }
+    },
+    setup(props) {
+        onBeforeMount(() => {
+            document.title = 'EAD - Reset Password'
+        })
+        
         const email = ref("")
+        const password = ref("")
         const loading = ref(false)
 
-        const forgetPassword  = () => {
+        const typePassword = ref('password')
+        const toggleShowPassword = () => typePassword.value = typePassword.value === 'password' ? 'text' : 'password'
+
+        const auth = () => {
             loading.value = true
 
-            store
-                .dispatch('forgetPassword', {email: email.value})
-                .then(() => notify({
+            ResetPasswordService.reset({
+                email: email.value,
+                password: password.value,
+                token: props.token,
+            })
+            .then(() => {
+                notify({
                     title: 'Sucesso',
-                    text: 'Confira o seu e-mail'
-                }))
-                .catch(() => notify({
+                    text: 'Senha Atualizada com sucesso'
+                })
+
+                router.push({name: 'auth'})
+            })
+            .catch(() => notify({
                     title: 'Falha',
                     text: 'Falha ao recuperar o usuário',
                     type: "warn"
                 }))
-                .finally(() => loading.value = false)
+            .finally(() => loading.value = false)
         }
 
         return {
+            auth,
             email,
+            password,
             loading,
-            forgetPassword
+            typePassword,
+            toggleShowPassword
         }
-    },
+    }
 }
 </script>

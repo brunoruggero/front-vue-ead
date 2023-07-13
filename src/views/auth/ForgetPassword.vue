@@ -5,7 +5,7 @@
         }">
         <div class="loginContent">
             <div class="loginCard">
-                <div class="decor" style="background-image: url('./assets/images/building.jpg');">
+                <div class="decor" :style="{backgroundImage: 'url(' + require('@/assets/images/building.jpg') + ')'}">
                     <div class="content">
                         <span class="logo">
                             <img :src="require('@/assets/images/logo.svg')" alt="EspecializaTi">
@@ -27,11 +27,12 @@
                 </div>
                 <div class="login">
                     <div class="content">
-                        <span class="logo"
-                            ><img :src="['./assets/images/logoDark.svg']" alt="" />
+                        <span class="logo">
+                            <img :src="require('@/assets/images/logoDark.svg')" alt="">
+                            <!-- <img :src="'./assets/images/logoDark.svg'" alt="" /> -->
                         </span>
                         <span>
-                            <p>Seja muito bem vindo(a)!</p>
+                            <p>Seja muito bem vindo!</p>
                         </span>
                         <span class="dots">
                             <span></span>
@@ -46,11 +47,6 @@
                                 <i class="far fa-envelope"></i>
                                 <input type="email" name="email" placeholder="E-mail" v-model="email" required>
                             </div>
-                            <div class="groupForm">
-                                <i class="far fa-key"></i>
-                                <input :type="typePassword" name="password" placeholder="Senha" v-model="password" required>
-                                <i class="far fa-eye buttom" @click="toggleShowPassword"></i>
-                            </div>
                             <button
                                 :class="[
                                     'btn',
@@ -58,11 +54,16 @@
                                     loading ? 'loading' : ''
                                 ]"
                                 type="submit"
-                                @click.prevent="auth">
-                                <span v-if="loading">Atualizando dados...</span>
-                                <span v-else>Atualizar Senha</span>
+                                @click.prevent="forgetPassword">
+                                <span v-if="loading">Recuperando...</span>
+                                <span v-else>Recuperar Senha</span>
                             </button>
                         </form>
+                        <span>
+                            <p class="fontSmall">Acessar?
+                                <router-link :to="{name: 'auth'}" class="link primary">Clique aqui</router-link>
+                            </p>
+                        </span>
                     </div>
                     <span class="copyright fontSmall">
                         Todos os Direitos reservados - <b>Especializati</b>
@@ -75,62 +76,41 @@
 
 <script>
 import { onBeforeMount, ref } from 'vue'
+import { useStore } from 'vuex'
 import { notify } from "@kyvg/vue3-notification"
 
-import router from '@/router'
-import ResetPasswordService from '@/services/password.reset.service'
-
 export default {
-    name: 'ResetPasswordView',
-    props: {
-        token: {
-            require: true,
-        }
-    },
-    setup(props) {
+    name: 'ForgetPassword',
+    setup() {
         onBeforeMount(() => {
-            document.title = 'EAD - Reset Password'
+            document.title = 'EAD - Forgot Password'
         })
-
+        
+        const store = useStore()
         const email = ref("")
-        const password = ref("")
         const loading = ref(false)
 
-        const typePassword = ref('password')
-        const toggleShowPassword = () => typePassword.value = typePassword.value === 'password' ? 'text' : 'password'
-
-        const auth = () => {
+        const forgetPassword  = () => {
             loading.value = true
 
-            ResetPasswordService.reset({
-                email: email.value,
-                password: password.value,
-                token: props.token,
-            })
-            .then(() => {
-                notify({
+            store
+                .dispatch('forgetPassword', {email: email.value})
+                .then(() => notify({
                     title: 'Sucesso',
-                    text: 'Senha Atualizada com sucesso',
-                    type: 'success'
-                })
-
-                router.push({name: 'auth'})
-            })
-            .catch(() => notify({
+                    text: 'Confira o seu e-mail'
+                }))
+                .catch(() => notify({
                     title: 'Falha',
                     text: 'Falha ao recuperar o usuário',
                     type: "warn"
                 }))
-            .finally(() => loading.value = false)
+                .finally(() => loading.value = false)
         }
 
         return {
-            auth,
             email,
-            password,
             loading,
-            typePassword,
-            toggleShowPassword
+            forgetPassword
         }
     }
 }

@@ -3,7 +3,7 @@ import CourseService from '@/services/course.service'
 const actions = {
     getCourses ({commit}) {
         CourseService.getCourses()
-                     .then(response => commit('ADD_MY_COURSES', response.data))
+                        .then(response => commit('ADD_MY_COURSES', response.data))
     },
 
     markLessonViewed ({commit, state}) {

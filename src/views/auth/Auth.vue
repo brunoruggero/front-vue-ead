@@ -1,11 +1,14 @@
 <template>
-    <section id="loginPage" :style="{backgroundImage: 'url(' + require('@/assets/images/bgLogin.jpg') + ')'}">
+    <section id="loginPage"
+        :style="{
+            backgroundImage: 'url(' + require('@/assets/images/bgLogin.jpg') + ')'
+        }">
         <div class="loginContent">
             <div class="loginCard">
                 <div class="decor" :style="{backgroundImage: 'url(' + require('@/assets/images/building.jpg') + ')'}">
                     <div class="content">
                         <span class="logo">
-                            <img :src="require('@/assets/images/logo.svg')" alt="">
+                            <img :src="require('@/assets/images/logo.svg')" alt="EspecializaTi">
                         </span>
                         <span class="dots">
                             <span></span>
@@ -25,8 +28,8 @@
                 <div class="login">
                     <div class="content">
                         <span class="logo">
-                            <!-- <img :src="require('@/assets/images/logoDark.svg')" alt=""> -->
-                            <img :src="['./assets/images/logoDark.svg']" alt="" />
+                            <img :src="require('@/assets/images/logoDark.svg')" alt="">
+                            <!-- <img :src="'./assets/images/logoDark.svg'" alt="" /> -->
                         </span>
                         <span>
                             <p>Seja muito bem vindo(a)!</p>
@@ -46,26 +49,27 @@
                             </div>
                             <div class="groupForm">
                                 <i class="far fa-key"></i>
-                                <input type="password" name="password" placeholder="Senha" v-model="password" required>
-                                <i class="far fa-eye buttom"></i>
+                                <input :type="typePassword" name="password" placeholder="Senha" v-model="password" required>
+                                <i class="far fa-eye buttom" @click="toggleShowPassword"></i>
                             </div>
-                            <button 
+                            <button
                                 :class="[
                                     'btn',
                                     'primary',
-                                    loading ? 'loading' : ''
-                                ]" 
-                                type="submit" 
+                                    loading || loadingStore ? 'disabled' : ''
+                                ]"
+                                type="submit"
                                 @click.prevent="auth">
-                                <span v-if="loading">Efetuando login...</span>
+                                <span v-if="loading">Enviando...</span>
+                                <span v-else-if="loadingStore">Validando Acesso...</span>
                                 <span v-else>Login</span>
                             </button>
                         </form>
                         <span>
-                            <p class="fontSmall">Esqueceu sua senha? 
+                            <p class="fontSmall">
+                                Esqueceu sua senha?
                                 <router-link :to="{name: 'forget.password'}" class="link primary">Clique aqui</router-link>
                             </p>
-
                         </span>
                     </div>
                     <span class="copyright fontSmall">
@@ -78,22 +82,37 @@
 </template>
 
 <script>
-import router from '@/router';
-import { onBeforeMount, ref } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { notify } from "@kyvg/vue3-notification";
 
+import router from '@/router'
+
 export default {
     name: 'AuthView',
-    setup(){
+    setup() {
         onBeforeMount(() => {
             document.title = 'EAD - Login'
         });
-
+        
         const store = useStore()
         const email = ref("")
         const password = ref("")
         const loading = ref(false)
+
+        const loadingStore = computed(() => store.state.loading)
+
+        watch(
+            () => store.state.users.loggedIn,
+            (loggedIn) => {
+                if (loggedIn) {
+                    router.push({name: 'campus.home'})
+                }
+            }
+        )
+
+        const typePassword = ref('password')
+        const toggleShowPassword = () => typePassword.value = typePassword.value === 'password' ? 'text' : 'password'
 
         const auth = () => {
             loading.value = true
@@ -101,8 +120,9 @@ export default {
             store.dispatch('auth', {
                 email: email.value,
                 password: password.value,
-                device_name: 'auth_by_vue'
+                device_name: 'vue3_web'
             })
+            // .then(() => router.push({name: 'campus.home'}))
             .then(() => {
                 notify({
                     title: 'Sucesso',
@@ -114,24 +134,27 @@ export default {
             .catch(error => {
                 let msgError = 'Falha na requisição'
 
-                if (error.status === 422) msgError = 'Dados Inválidos'
-                if (error.status === 404) msgError = 'Usuário Não Encontrado'
+                if (error.status === 422) {msgError = 'Dados Inválidos'}
+                if (error.status === 404) {msgError = 'Usuário Não Encontrado'}
 
                 notify({
                     title: 'Falha ao autenticar',
                     text: msgError,
-                    type: "error"
+                    type: "warn"
                 });
             })
             .finally(() => loading.value = false)
         }
-        return{ 
+
+        return {
             auth,
             email,
             password,
-            loading
+            loading,
+            typePassword,
+            toggleShowPassword,
+            loadingStore,
         }
-
-    },
+    }
 }
 </script>

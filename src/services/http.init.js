@@ -1,5 +1,6 @@
 import axios from 'axios'
-import  { URL_API, TOKEN_NAME } from '@/configs'
+
+import { URL_API, TOKEN_NAME } from '@/configs'
 
 export default class Http {
     constructor (status) {
@@ -7,10 +8,10 @@ export default class Http {
 
         const headers = status.auth ? {
             Authorization: `Bearer ${token}`
-        }: {}
+        } : {}
 
         this.instance = axios.create({
-            baseURL: URL_API,   
+            baseURL: URL_API,
             headers: headers
         })
 
