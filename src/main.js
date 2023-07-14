@@ -5,7 +5,7 @@ import router from './router'
 import store from './store'
 
 import Notifications from '@kyvg/vue3-notification'
-// import 'animate.css'
+import 'animate.css'
 
 createApp(App)
     .use(store)
